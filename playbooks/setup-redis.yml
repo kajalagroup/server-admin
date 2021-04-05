@@ -1,0 +1,22 @@
+- hosts: db_servers
+  become: yes
+  tasks:
+
+# redis
+  - name: install redis
+    ansible.builtin.apt:
+      name: redis-server
+  - name: set redis password if redis_password var set
+    ansible.builtin.lineinfile:
+      dest: /etc/redis/redis.conf
+      regexp: '^masterauth .*$'
+      line: "masterauth {{ redis_password }}"
+      state: present
+    when: redis_password is defined
+  - name: restart redis
+    ansible.builtin.service:
+      name: redis-server
+
+# ufw baseline for db server
+- name: ufw baseline
+  import_playbook: setup-ufw-db.yml

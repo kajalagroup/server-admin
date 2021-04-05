@@ -1,0 +1,15 @@
+- hosts: db_servers
+  become: yes
+  tasks:
+
+  - name: ufw allow ssh
+    community.general.ufw:
+      rule: allow
+      port: ssh
+  - name: ufw default deny
+    community.general.ufw:
+      default: deny
+      direction: incoming
+  - name: ufw enable
+    community.general.ufw:
+      state: enabled
