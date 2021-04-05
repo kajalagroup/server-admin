@@ -1,0 +1,36 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+export THIS_PATH=$(dirname `realpath "$0"`)
+export APPEND_STR="$1"
+
+if [ -z "$1" ]; then
+    echo "Usage: $THIS_SCRIPT <string to append>"
+    exit 1
+fi
+
+export PG_HBA_FILE="/etc/postgresql/`$THIS_PATH/pg-major-ver`/main/pg_hba.conf"
+if [ ! -f "$PG_HBA_FILE" ]; then
+    echo "$PG_HBA_FILE does not exist. Different PostgreSQL version installed?"
+    exit 1
+fi
+
+export PG_HBA_FILE_BACKUP="${PG_HBA_FILE}.bak"
+sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP
+echo "$PG_HBA_FILE copied to ${PG_HBA_FILE}.bak"
+sudo cat $PG_HBA_FILE | sed "s|$APPEND_STR||" > /tmp/pg_hba.conf
+sudo echo "$APPEND_STR" >> /tmp/pg_hba.conf
+sudo mv -f /tmp/pg_hba.conf $PG_HBA_FILE
+echo "$PG_HBA_FILE modified to include \"$APPEND_STR\""
+
+echo "Reloading PostgreSQL"
+sudo systemctl reload postgresql.service
+if [ "$?" != "0" ]; then
+    echo "Failed to reload postgresql.service, reverting to old configuration $PG_HBA_FILE_BACKUP and exiting with 1"
+    sudo cp -f $PG_HBA_FILE_BACKUP $PG_HBA_FILE
+    sudo systemctl reload postgresql.service
+    exit 1
+fi
+
+echo "Done!"
+exit 0

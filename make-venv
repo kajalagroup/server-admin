@@ -1,0 +1,40 @@
+#!/bin/bash
+
+OPT_FORCE=''
+OPT_DEV=''
+while test $# -gt 0; do
+    case "$1" in
+        --force) OPT_FORCE="1"
+            ;;
+        --dev) OPT_DEV="1"
+            ;;
+    esac
+    shift
+done
+
+export DJANGO_DIR="`realpath .`"
+if [ -f "./django/requirements.txt" ]; then
+    export DJANGO_DIR="`realpath ./django`"
+fi
+
+echo "Creating Python virtual environment to $PWD/venv using $DJANGO_DIR/requirements.txt"
+if [ "$OPT_FORCE" == "" ] && [ -f "./venv/bin/python" ]; then
+    echo "venv exists already"
+else
+    rm -rf venv
+    python3 -m venv venv
+fi
+source venv/bin/activate
+pip install --upgrade pip wheel twine setuptools
+pip install -r "$DJANGO_DIR/requirements.txt" --no-cache-dir
+export RV="$?"
+if [ "$OPT_DEV" != "" ] && [ -f "$DJANGO_DIR/requirements-dev.txt" ]; then
+    pip install -r "$DJANGO_DIR/requirements-dev.txt" --no-cache-dir
+fi
+echo "export BASE_DIR=`realpath .`" >> venv/bin/activate
+echo "export DJANGO_DIR=$DJANGO_DIR" >> venv/bin/activate
+echo "export VENV_DIR=`realpath ./venv/bin`" >> venv/bin/activate
+echo "export BASE_DIR=`realpath .`"
+echo "export DJANGO_DIR=$DJANGO_DIR"
+echo "export VENV_DIR=`realpath ./venv/bin`"
+exit $RV

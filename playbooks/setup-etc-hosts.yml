@@ -1,0 +1,10 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: add IP addresses from etc_hosts to /etc/hosts
+    ansible.builtin.lineinfile:
+      dest: /etc/hosts
+      regexp: '.*{{ item.key }}$'
+      line: "{{ item.value }} {{ item.key }}"
+      state: present
+    loop: "{{ etc_hosts|dict2items }}"

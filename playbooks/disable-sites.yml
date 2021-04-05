@@ -1,0 +1,12 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: disable nginx sites
+    ansible.builtin.file:
+      path: "/etc/nginx/sites-enabled/{{ item.domain }}.conf"
+      state: absent
+    loop: "{{ services }}"
+  - name: reload nginx
+    ansible.builtin.service:
+      name: "nginx"
+      state: reloaded

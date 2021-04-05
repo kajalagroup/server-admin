@@ -1,0 +1,21 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: start nginx
+    ansible.builtin.service:
+      name: "nginx"
+      state: started
+      enabled: yes
+  - name: start uwsgi services
+    ansible.builtin.service:
+      name: "{{ item.name }}"
+      state: started
+      enabled: yes
+    loop: "{{ services }}"
+  - name: start huey services
+    ansible.builtin.service:
+      name: "{{ item.name }}_huey"
+      state: started
+      enabled: yes
+    when: item.huey
+    loop: "{{ services }}"

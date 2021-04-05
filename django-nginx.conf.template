@@ -1,0 +1,46 @@
+#
+# Template parameters:
+# __DJANGO_USER__
+# __DOMAIN__
+#
+
+upstream __DJANGO_USER___django_nginx {
+    server unix:///home/__DJANGO_USER__/uwsgi.sock;
+}
+
+server {
+    listen 443;
+    server_name __DOMAIN__;
+    charset utf-8;
+
+    client_max_body_size 2M;
+
+    location /static {
+        if (-e $request_filename) {
+            expires 1d;
+            break;
+        }
+
+        alias /home/__DJANGO_USER__/django/static;
+    }
+
+    if ($host !~* ^(__DOMAIN__)$ ) {
+        return 444;
+    }
+
+    location / {
+        uwsgi_pass __DJANGO_USER___django_nginx;
+        include /etc/nginx/uwsgi_params;
+    }
+
+    ssl on;
+    ssl_certificate /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
+}
+
+server {
+    listen 80;
+    server_name __DOMAIN__;
+    rewrite ^ https://__DOMAIN__$request_uri? permanent;
+}
+

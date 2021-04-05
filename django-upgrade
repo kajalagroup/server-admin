@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# This script pulls master at $HOME/django, installs reqs, migrates, collects static and calls manage post_build
+
+cd $HOME
+source venv/bin/activate
+cd django
+
+# Get output of django help command to check "wait_tasks" is supported in command list 
+OUTPUT_HELP=$(python manage.py help 2>&1)
+
+if [[ $OUTPUT_HELP == *"wait_tasks"* ]]; then
+    python manage.py wait_tasks --wait 300
+    if [ "$?" != "0" ]; then
+        echo "There are background tasks still running after 5 minutes"
+        exit 1
+    fi
+fi
+
+# https://stackoverflow.com/questions/1593051/how-to-programmatically-determine-the-current-checked-out-git-branch
+CURRENT_GIT_BRANCH=$(git branch | grep '^*' | sed 's/* //' )
+echo "Current branch is $CURRENT_GIT_BRANCH"
+git pull origin $CURRENT_GIT_BRANCH
+git pull origin $CURRENT_GIT_BRANCH --tags
+
+if [ "$?" != "0" ]; then
+    echo "Exiting with error, git pull origin $CURRENT_GIT_BRANCH failed"
+    exit 1
+fi
+pip install -r requirements.txt
+if [ "$?" != "0" ]; then
+    echo "Exiting with error, pip install -r requirements.txt failed"
+    exit 1
+fi
+python manage.py migrate
+if [ "$?" != "0" ]; then
+    echo "Exiting with error, Django migrate failed"
+    exit 1
+fi
+
+python manage.py collectstatic --no-input
+if [ "$?" != "0" ]; then
+    echo "Exiting with error, Django collectstatic failed"
+    exit 1
+fi
+
+# optional project specific signal that new build has been done
+python manage.py | grep post_build
+if [ "$?" == "0" ]; then
+    echo "Django management command post_build found, executing..."
+    python manage.py post_build
+fi
+
+exit 0

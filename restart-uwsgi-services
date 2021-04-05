@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for f in /home/*; do
+    if [ -f "$f/uwsgi.ini" ]; then
+        u="`basename $f`"
+        echo "Restarting $u"
+        sudo systemctl restart "${u}.service"
+    fi
+done

@@ -1,0 +1,55 @@
+- hosts: app_servers
+  become: yes
+  tasks:
+
+# nginx
+  - name: install nginx uwsgi and letsencrypt
+    ansible.builtin.apt:
+      name: nginx, certbot
+  - name: copies nginx.conf to server
+    ansible.builtin.template:
+      src: "../templates/nginx.conf.j2"
+      dest: "/etc/nginx/nginx.conf"
+  - name: copies nginxconfig.io files to server
+    ansible.builtin.synchronize:
+      mode: push
+      dest: "/etc/nginx/"
+      src: "../templates/nginxconfig.io"
+      recursive: yes
+  - name: restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+      enabled: yes
+
+# python
+  - name: install python
+    ansible.builtin.apt:
+      name: uwsgi, xmlsec1, libxmlsec1-dev, libssl-dev, libffi-dev, uwsgi-plugin-python3, libz-dev, libreadline-dev, libgdbm-dev, libbz2-dev, libncursesw5-dev, python3-dev, libreadline6-dev, libssl-dev, libgdbm-dev, libc6-dev, libsqlite3-dev, tk-dev, liblzma-dev, libdb-dev, python3-venv, libpq-dev, libmemcached-dev, postgresql-client
+  - name: install pdftk
+    community.general.snap:
+      name: pdftk
+  - name: install wkhtmltopdf
+    ansible.builtin.apt:
+      deb: "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb"
+
+# ufw baseline for web server
+  - name: ufw allow ssh
+    community.general.ufw:
+      rule: allow
+      port: ssh
+  - name: ufw allow https
+    community.general.ufw:
+      rule: allow
+      port: https
+  - name: ufw allow http
+    community.general.ufw:
+      rule: allow
+      port: http
+  - name: ufw default deny
+    community.general.ufw:
+      default: deny
+      direction: incoming
+  - name: ufw enable
+    community.general.ufw:
+      state: enabled

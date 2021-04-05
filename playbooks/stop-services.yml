@@ -1,0 +1,18 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: stop uwsgi services
+    ansible.builtin.service:
+      name: "{{ item.name }}"
+      state: stopped
+    loop: "{{ services }}"
+  - name: stop huey services
+    ansible.builtin.service:
+      name: "{{ item.name }}_huey"
+      state: stopped
+    when: item.huey
+    loop: "{{ services }}"
+  - name: stop nginx
+    ansible.builtin.service:
+      name: "nginx"
+      state: stopped

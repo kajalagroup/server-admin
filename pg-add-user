@@ -1,0 +1,44 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+export THIS_PATH=$(dirname `realpath "$0"`)
+export PG_HBA_FILE="/etc/postgresql/`$THIS_PATH/pg-major-ver`/main/pg_hba.conf"
+
+if [ ! -f "$PG_HBA_FILE" ]; then
+    echo "$PG_HBA_FILE does not exist. Different PostgreSQL version installed?"
+    exit 1
+fi
+
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $THIS_SCRIPT <username> <password> <client IP>"
+    exit 1
+fi
+
+export DB_USER="$1"
+export DB_PASS="$2"
+export DB_CLIENT_IP="$3"
+
+psql -c "CREATE USER $DB_USER"
+if [ "$?" != "0" ]; then
+    echo "CREATE USER $DB_USER failed, exiting with 1"
+    exit 1
+fi
+psql -c "CREATE DATABASE $DB_USER OWNER $DB_USER"
+if [ "$?" != "0" ]; then
+    echo "CREATE DATABASE $DB_USER OWNER $DB_USER failed, exiting with 1"
+    exit 1
+fi
+psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_USER TO $DB_USER"
+if [ "$?" != "0" ]; then
+    echo "GRANT ALL PRIVILEGES ON DATABASE $DB_USER TO $DB_USER failed, exiting with 1"
+    exit 1
+fi
+psql -c "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS'"
+if [ "$?" != "0" ]; then
+    echo "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS' failed, exiting with 1"
+    exit 1
+fi
+
+echo "Appending host $DB_USER $DB_USER $DB_CLIENT_IP/32 md5 to pg_hba file $PG_HBA_FILE"
+./pg-append-hba "host $DB_USER $DB_USER $DB_CLIENT_IP/32 md5"
+exit $?

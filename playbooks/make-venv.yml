@@ -1,0 +1,23 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: transfer make-venv script
+    ansible.builtin.synchronize:
+      mode: push
+      dest: "/home/{{ item.name }}/"
+      src: "../make-venv"
+    loop: "{{ services }}"
+  - name: set make-venv script permissions
+    ansible.builtin.file:
+      mode: '0764'
+      name: "/home/{{ item.name }}/make-venv"
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+    loop: "{{ services }}"
+  - name: make venv
+    become_user: "{{ item.name }}"
+    ansible.builtin.command:
+      chdir: "/home/{{ item.name }}"
+      argv:
+      - "/home/{{ item.name }}/make-venv"
+    loop: "{{ services }}"

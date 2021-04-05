@@ -1,0 +1,18 @@
+[uwsgi]
+
+env = DJANGO_SETTINGS_MODULE=project.settings
+env = LC_ALL=en_US.UTF-8
+master = true
+processes = 10
+threads = 2
+socket = /home/{{ django_user }}/uwsgi.sock
+chmod-socket = 777
+chdir = /home/{{ django_user }}/django
+wsgi-file = /home/{{ django_user }}/django/project/wsgi.py
+home = /home/{{ django_user }}/venv
+virtualenv = /home/{{ django_user }}/venv
+enable-threads = true
+plugins = python3
+uid = {{ django_user }}
+gid = {{ django_user }}
+vacuum  = true

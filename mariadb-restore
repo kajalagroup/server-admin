@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PASSWORD" ]; then
+    echo "MARIADB_HOST/MARIADB_ROOT_USER/MARIADB_ROOT_PASSWORD not set, using defaults:"
+    export MARIADB_HOST="127.0.0.0"
+    export MARIADB_ROOT_USER="root"
+    export MARIADB_ROOT_PASSWORD="dev"
+    echo "export MARIADB_HOST=$MARIADB_HOST"
+    echo "export MARIADB_ROOT_USER=$MARIADB_ROOT_USER"
+    echo "export MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD"
+fi
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: <dbfile.sql.gz> <dbname>"
+    exit 1
+fi
+
+dbfile="$1"
+dbname="$2"
+dbuser="$dbname"
+dbpass="`tr -cd '[:alnum:]' < /dev/urandom | fold -w16 | head -n1`"
+dbhost="$MARIADB_HOST"
+
+# Drop old DB if exists
+echo "Dropping old DB $dbname if exists"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP DATABASE IF EXISTS $dbname;"
+
+# Drop old user if exists
+echo "Dropping old user $dbuser if exists"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP USER IF EXISTS '$dbname'@'$dbhost';"
+
+# Create new DB
+echo "Creating new DB $dbname"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE DATABASE $dbname DEFAULT CHARACTER SET utf8;"
+
+# Create new user
+echo "Creating new user $dbuser with password '$dbpass'"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE USER '$dbuser'@'%' IDENTIFIED BY '$dbpass';"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT USAGE ON *.* TO '$dbuser'@'%';"
+mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%';"
+
+# Preprocess: Skip foreign key checks for import and import with most relaxed SQL-mode
+echo "Preprocessing: Skip foreign key checks for import and import with most relaxed SQL-mode"
+tmpfile1="`tempfile`"
+echo "SET @@SQL_MODE = ''; SET foreign_key_checks = 0;" > $tmpfile1
+gunzip -c $dbfile >> $tmpfile1
+echo "SET foreign_key_checks = 1;" >> $tmpfile1
+
+# Import pre-processed file
+echo "Importing pre-processed file $tmpfile1"
+cat $tmpfile1 | mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" "$dbname"
+RV="$?"
+
+rm $tmpfile1
+echo "DB_CONNECTION='mysql://$dbuser:$dbpass@$dbhost/$dbname'"
+echo "Done! Exiting with code $RV"
+exit $RV

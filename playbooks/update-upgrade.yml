@@ -1,0 +1,18 @@
+- hosts: all
+  become: yes
+
+  tasks:
+  - name: update and upgrade
+    ansible.builtin.apt:
+      update_cache: yes
+      upgrade: yes
+
+  - name: check if reboot needed
+    ansible.builtin.stat:
+      path: "/var/run/reboot-required"
+    register: reboot_needed
+
+  - name: reboot if needed
+    ansible.builtin.reboot:
+      reboot_timeout: 300
+    when: reboot_needed.stat.exists

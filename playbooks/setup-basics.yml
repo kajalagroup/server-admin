@@ -1,0 +1,9 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: set hostname
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
+  - name: setup basic software
+    ansible.builtin.apt:
+      name: ssh, build-essential, locate, aptitude, wget, curl, less, p7zip-full, software-properties-common, ssl-cert, at, upower, unzip, sshpass, whois, git-core, screen, gdebi-core, gettext, libxml2-utils, xmlsec1, libxmlsec1-dev, libjpeg-dev, libtiff-dev, libxml2-utils, htop, ncdu, ufw, language-pack-en acl

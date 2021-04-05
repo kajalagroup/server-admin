@@ -1,0 +1,31 @@
+- hosts: all
+  become: yes
+  vars:
+    user_list:
+      - name: "{{ lookup('env', 'USER') }}"
+        public_key: "{{ lookup('env', 'SSH_PUBLIC_KEY') }}"
+
+  tasks:
+    - name: sudo without password
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+    - name: add all admin users
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        append: yes
+        groups: sudo
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+        shell: /bin/bash
+      loop: "{{ user_list }}"
+    - name: "setup private/public key logins"
+      ansible.posix.authorized_key:
+        user: "{{ item.name }}"
+        state: present
+        key: "{{ item.public_key }}"
+      loop: "{{ user_list }}"

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+export THIS_SCRIPT_FULL_PATH="`realpath $0`"
+export SCRIPT_DIR="`dirname $THIS_SCRIPT_FULL_PATH`"
+
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $THIS_SCRIPT <filename.tar.gz> <domain>"
+    echo "$THIS_SCRIPT # of arguments was $#"
+    exit 1
+fi
+if [ "$USER" != "root" ]; then
+    echo "ERROR: This script must be executed as root"
+    exit 1
+fi
+
+export DOMAIN="$2"
+export TAR_FILE="`realpath $1`"
+
+mkdir -p /root/certs/$DOMAIN
+cd /root/certs/$DOMAIN
+cp "$TAR_FILE" .
+if [ "$?" != "0" ]; then
+    echo "ERROR: cp $TAR_FILE . failed"
+    exit 1
+fi
+tar xvf "`basename $TAR_FILE`"
+if [ "$?" != "0" ]; then
+    echo "ERROR: tar xvf `basename $TAR_FILE` failed"
+    exit 1
+fi
+
+export LIVE_DIR="/etc/letsencrypt/live/$DOMAIN"
+export ARCHIVE_DIR="/etc/letsencrypt/archive/$DOMAIN"
+mkdir -p "$ARCHIVE_DIR"
+mkdir -p "$LIVE_DIR"
+for F in *.pem; do
+    export PEM_FILE="`realpath $F`"
+    export ARCHIVE_FILE="$ARCHIVE_DIR/$F"
+    echo "Copying $PEMFILE to $ARCHIVE_FILE"
+    cp "$PEM_FILE" "$ARCHIVE_FILE"
+    if [ "$?" != "0" ]; then
+        echo "ERROR: cp \"$PEM_FILE\" \"$ARCHIVE_FILE\" failed"
+        exit 1
+    fi
+    export LIVE_FILE=''
+    if [[ "$F" =~ cert* ]]; then
+        export LIVE_FILE="cert.pem"
+    fi
+    if [[ "$F" =~ chain* ]]; then
+        export LIVE_FILE="chain.pem"
+    fi
+    if [[ "$F" =~ fullchain* ]]; then
+        export LIVE_FILE="fullchain.pem"
+    fi
+    if [[ "$F" =~ privkey* ]]; then
+        export LIVE_FILE="privkey.pem"
+    fi
+    if [ -f "$LIVE_DIR/$LIVE_FILE" ]; then
+        rm "$LIVE_DIR/$LIVE_FILE"
+    fi
+    ln -s "$ARCHIVE_FILE" "$LIVE_DIR/$LIVE_FILE"
+    if [ "$?" != "0" ]; then
+        echo "ERROR: ln -s \"$ARCHIVE_FILE\" \"$LIVE_DIR/$LIVE_FILE\" failed"
+        exit 1
+    fi
+done
+
+exit 0

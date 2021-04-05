@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$2" ]; then
+    echo "Restore exported DB from .sql.gz and creates new user with password"
+    echo "Usage: <dbname> <password>"
+    exit
+fi
+$HOME/pg-restore $1.sql.gz $1
+$HOME/pg-set-user-password $1 $2

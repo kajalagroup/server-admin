@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for f in `psql -l | tail -n+4 | head -n-3 | awk '{print $1;}'`
+do
+    if [ "$f" != "|" ];
+    then
+        echo "$f"
+    fi
+done

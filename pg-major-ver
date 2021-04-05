@@ -1,0 +1,3 @@
+#!/bin/bash
+
+psql --version | sed 's|psql (PostgreSQL) ||' | sed -r 's|\..+||'

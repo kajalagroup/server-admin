@@ -1,0 +1,18 @@
+#!/bin/bash
+
+OLD_SERVER="$1"
+OLD_USER="$USER"
+if [ -z "$OLD_SERVER" ] || [ -z "$OLD_USER" ]; then
+    echo "This script synchronizes from old server $HOME/ all uploads, downloads, certs and logs"
+    echo "Usage: sync-files <old server>"
+    exit 1
+fi
+
+for f in certs downloads uploads logs; do
+    rsync -aP "${OLD_USER}@${OLD_SERVER}:$f" "$HOME/"
+    if [ "$?" != "0" ]; then
+        >&2 echo "FAILED: rsync -aP ${OLD_USER}@${OLD_SERVER}:$f $HOME/"
+        exit 1
+    fi
+done
+exit 0

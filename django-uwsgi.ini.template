@@ -1,0 +1,24 @@
+#
+# Template parameters:
+# __DJANGO_USER__
+#
+
+[uwsgi]
+
+env = DJANGO_SETTINGS_MODULE=project.settings
+env = LC_ALL=en_US.UTF-8
+master = true
+processes = 10
+threads = 2
+socket = /home/__DJANGO_USER__/uwsgi.sock
+chmod-socket = 666
+chdir = /home/__DJANGO_USER__/django
+wsgi-file = /home/__DJANGO_USER__/django/project/wsgi.py
+home = /home/__DJANGO_USER__/venv
+virtualenv = /home/__DJANGO_USER__/venv
+enable-threads = true
+plugins = python3
+uid = __DJANGO_USER__
+gid = __DJANGO_USER__
+vacuum  = true
+

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $THIS_SCRIPT <dbname> <owner>"
+    exit 1
+fi
+
+export DBNAME=$1
+export OWNER=$2
+
+for tab in `psql -c '\dt' $DBNAME | tail -n+3 | awk '{print $3;}'`
+do
+    echo "Executing: ALTER TABLE $tab OWNER TO $OWNER"
+    psql -c "ALTER TABLE $tab OWNER TO $OWNER" $DBNAME
+done
+

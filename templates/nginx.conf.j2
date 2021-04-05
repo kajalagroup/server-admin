@@ -1,0 +1,36 @@
+user                 www-data;
+pid                  /run/nginx.pid;
+worker_processes     auto;
+
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    charset              utf-8;
+    sendfile             on;
+    tcp_nopush           on;
+    tcp_nodelay          on;
+    server_tokens        off;
+    log_not_found        off;
+    types_hash_max_size  2048;
+    client_max_body_size 16M;
+
+    # MIME
+    include              mime.types;
+    default_type         application/octet-stream;
+
+    # Logging
+    access_log           /var/log/nginx/access.log;
+    error_log            /var/log/nginx/error.log warn;
+
+    # SSL
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+    # Load configs
+    include              /etc/nginx/conf.d/*.conf;
+    include              /etc/nginx/sites-enabled/*;
+}

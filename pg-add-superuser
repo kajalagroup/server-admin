@@ -1,0 +1,35 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+
+if [ -z "$1" ]; then
+    echo "Usage: $THIS_SCRIPT <username> <optional: password>"
+    exit 1
+fi
+
+export U="$1"
+sudo -H -u postgres bash -c "createuser --superuser $U"
+if [ "$?" != "0" ]; then
+    echo "createuser --superuser $U failed, exiting with 1"
+    exit 1
+fi
+sudo -H -u postgres bash -c "createdb $U -O $U"
+if [ "$?" != "0" ]; then
+    echo "createdb $U -O $U failed, exiting with 1"
+    exit 1
+fi
+
+if [ -z "$2" ]; then
+    echo "Skipping password setting"
+else
+    export PASSWORD="$2"
+    psql -c "ALTER USER $U WITH PASSWORD '$PASSWORD'"
+    if [ "$?" != "0" ]; then
+        echo "ALTER USER $U WITH PASSWORD '$PASSWORD' failed, exiting with 1"
+        exit 1
+    fi
+    echo "User $U password set as $PASSWORD"
+fi
+
+exit 0
+

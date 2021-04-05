@@ -1,0 +1,16 @@
+[Unit]
+Description={{ django_user }}_huey
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/home/{{ django_user }}/venv/bin/python /home/{{ django_user }}/django/manage.py run_huey -l /home/{{ django_user }}/logs/huey.log
+User={{ django_user }}
+RuntimeDirectory=/home/{{ django_user }}
+Restart=always
+KillSignal=SIGQUIT
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

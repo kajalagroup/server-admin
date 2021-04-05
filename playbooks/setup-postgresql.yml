@@ -1,0 +1,25 @@
+- hosts: db_servers
+  become: yes
+  tasks:
+
+# postgres
+  - name: install postgresql
+    ansible.builtin.apt:
+      name: postgresql
+  - name: install postgis
+    ansible.builtin.apt:
+      name: "postgresql-{{ pg_major_ver }}-postgis-{{ postgis_major_ver }}, postgresql-contrib postgresql-client-common postgis binutils libproj-dev gdal-bin"
+    when: postgis_major_ver is defined
+
+# ufw baseline for db server
+  - name: ufw allow ssh
+    community.general.ufw:
+      rule: allow
+      port: ssh
+  - name: ufw default deny
+    community.general.ufw:
+      default: deny
+      direction: incoming
+  - name: ufw enable
+    community.general.ufw:
+      state: enabled

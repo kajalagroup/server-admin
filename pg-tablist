@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "usage: pg-tablist <dbname>"
+    exit
+fi
+
+# for tab in `psql -c '\dt' $1 | tail -n+3 | head -n-2 | awk '{print $3;}'`
+for tab in `psql -c '\dt' $1 | tail -n+3 | awk '{print $3;}'`
+do
+    echo "$tab"    
+done
+
+

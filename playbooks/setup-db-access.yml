@@ -1,0 +1,28 @@
+- hosts: db_servers
+  become: yes
+  tasks:
+  - name: setup pg_hba
+    ansible.builtin.lineinfile:
+      dest: "/etc/postgresql/{{ pg_major_ver }}/main/pg_hba.conf"
+      regexp: '.*{{ item.name }}.*{{ item.ip }}.*$'
+      line: "host {{ item.name }} {{ item.name }} {{ item.ip }}/32 md5"
+      state: present
+    loop: "{{ db_users }}"
+  - name: reload pg
+    ansible.builtin.service:
+      name: "postgresql"
+      state: reloaded
+  - name: allow pg connections from clients
+    community.general.ufw:
+      from_ip: "{{ item.ip }}"
+      to_port: 5432
+      direction: in
+      rule: allow
+    loop: "{{ db_users }}"
+  - name: allow redis connections from clients
+    community.general.ufw:
+      from_ip: "{{ item.ip }}"
+      to_port: 6379
+      direction: in
+      rule: allow
+    loop: "{{ db_users }}"

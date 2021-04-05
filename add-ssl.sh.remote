@@ -1,0 +1,25 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $THIS_SCRIPT <domain> <admin email>"
+    echo "$THIS_SCRIPT # of arguments was $#"
+    exit 1
+fi
+
+export DOMAIN="$1"
+export ADMIN_EMAIL="$2"
+
+echo "Setting up SSL for domain $DOMAIN using admin email $ADMIN_EMAIL"
+
+if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+    systemctl stop nginx.service
+    certbot certonly --non-interactive --standalone --email $ADMIN_EMAIL --agree-tos -d $DOMAIN
+    export RV="$?"
+    systemctl start nginx.service
+    if [ "$RV" != "0" ]; then
+        echo "certbot command failed, exiting with $RV"
+        exit $RV
+    fi
+fi

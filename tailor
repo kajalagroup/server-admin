@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $THIS_SCRIPT <variable name to replace> <variable value>"
+    echo "$THIS_SCRIPT # of arguments was $#"
+    exit 1
+fi
+
+export VAR_NAME="$1"
+export VAR_VALUE="$2"
+
+sed "s|$VAR_NAME|$VAR_VALUE|g"

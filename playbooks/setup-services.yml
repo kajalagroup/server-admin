@@ -1,0 +1,97 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: add users
+    ansible.builtin.user:
+      name: "{{ item.name }}"
+      shell: /bin/bash
+    loop: "{{ services }}"
+  - name: ensure .ssh directories
+    ansible.builtin.file:
+      dest: "/home/{{ item.name }}/.ssh"
+      state: directory
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+      mode: '0755'
+    loop: "{{ services }}"
+  - name: copy service private keys
+    ansible.builtin.copy:
+      src: "../files/{{ item.name }}/.ssh/id_rsa"
+      dest: "/home/{{ item.name }}/.ssh/id_rsa"
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+      mode: '0600'
+    loop: "{{ services }}"
+  - name: copy service public keys
+    ansible.builtin.copy:
+      src: "../files/{{ item.name }}/.ssh/id_rsa.pub"
+      dest: "/home/{{ item.name }}/.ssh/id_rsa.pub"
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+      mode: '0600'
+    loop: "{{ services }}"
+  - name: git clone repos
+    ansible.builtin.git:
+      accept_hostkey: yes
+      repo: "{{ item.git_repo }}"
+      dest: "/home/{{ item.name }}/django"
+      version: master
+      key_file: "/home/{{ item.name }}/.ssh/id_rsa"
+    become_user: "{{ item.name }}"
+    loop: "{{ services }}"
+  - name: copy services .env
+    ansible.builtin.copy:
+      src: "../files/{{ item.name }}/django/project/.env"
+      dest: "/home/{{ item.name }}/django/project/.env"
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+      mode: '0600'
+    loop: "{{ services }}"
+  - name: copy services settings.py
+    ansible.builtin.copy:
+      src: "../files/{{ item.name }}/django/project/settings.py"
+      dest: "/home/{{ item.name }}/django/project/settings.py"
+      owner: "{{ item.name }}"
+      group: "{{ item.name }}"
+      mode: '0600'
+    loop: "{{ services }}"
+  - name: setup nginx site configs
+    ansible.builtin.template:
+      src: "../templates/nginx-django-uwsgi-site.conf.j2"
+      dest: "/etc/nginx/sites-available/{{ item.domain }}.conf"
+    vars:
+      domain: "{{ item.domain }}"
+      django_user: "{{ item.name }}"
+    loop: "{{ services }}"
+  - name: config uwsgi for services
+    ansible.builtin.template:
+      src: "../templates/uwsgi.ini.j2"
+      dest: "/home/{{ item.name }}/uwsgi.ini"
+    vars:
+      django_user: "{{ item.name }}"
+    loop: "{{ services }}"
+  - name: config systemd for uwsgi services
+    ansible.builtin.template:
+      src: "../templates/systemd-uwsgi.service.j2"
+      dest: "/etc/systemd/system/{{ item.name }}.service"
+    vars:
+      django_user: "{{ item.name }}"
+    loop: "{{ services }}"
+  - name: config systemd for huey services
+    ansible.builtin.template:
+      src: "../templates/systemd-huey.service.j2"
+      dest: "/etc/systemd/system/{{ item.name }}_huey.service"
+    vars:
+      django_user: "{{ item.name }}"
+    loop: "{{ services }}"
+    when: item.huey
+
+- name: sync script files
+  import_playbook: sync-script-files.yml
+  vars:
+    script_files:
+      - 'sync-old-files'
+      - 'make-venv'
+
+- name: make venv
+  import_playbook: make-venv.yml

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "Finds Django project users under /home directory which have HOME/django and HOME/venv/bin/python, and runs clearsessions for each"
+
+pushd /home
+for U in *; do
+    if [ -d "$U/django" ] && [ -f "$U/venv/bin/python" ]; then
+        echo "Clearing $U Django sessions"
+        sudo su -c "/home/$U/venv/bin/python /home/$U/django/manage.py clearsessions" - $U
+        if [ "$?" != "0" ]; then
+            echo "Exited with error"
+            exit 1
+        fi
+    else
+        echo "$U is not Django service user, skipping"
+    fi
+done
+popd

@@ -1,0 +1,6 @@
+/.idea
+local.*
+certs
+*.gz
+/files
+

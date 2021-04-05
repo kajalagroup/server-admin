@@ -1,0 +1,8 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+for f in `$DIR/pg-dblist`
+do
+    echo "Dumping $f to $f.sql.gz"
+    pg_dump $f | gzip > $f.sql.gz
+done

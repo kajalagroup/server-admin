@@ -1,0 +1,20 @@
+- hosts: servers
+  become: yes
+  tasks:
+  - name: transfer sync script
+    ansible.builtin.synchronize:
+      mode: push
+      dest: "/home/{{ item[0].name }}/"
+      src: "../{{ item[1] }}"
+    with_nested:
+      - "{{ services }}"
+      - "{{ script_files }}"
+  - name: set sync script permissions
+    ansible.builtin.file:
+      mode: '0764'
+      name: "/home/{{ item[0].name }}/{{ item[1] }}"
+      owner: "{{ item[0].name }}"
+      group: "{{ item[0].name }}"
+    with_nested:
+      - "{{ services }}"
+      - "{{ script_files }}"

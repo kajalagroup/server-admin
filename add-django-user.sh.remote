@@ -1,0 +1,36 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+
+echo "Setting up 'dj' as alias to python manage.py"
+cat >> $HOME/.bash_aliases <<- "EOF"
+alias dj='python manage.py'
+EOF
+
+echo "Setting up automatic Python virtual environment activation"
+cat >> $HOME/.bashrc <<- "EOF"
+    _virtualenv_auto_activate() {
+        if [ -e "venv" ]; then
+            if [ "$VIRTUAL_ENV" != "$(pwd -P)/venv" ]; then
+                _VENV_NAME=$(basename `pwd`)
+                echo Activating virtualenv \"$_VENV_NAME\"...
+                VIRTUAL_ENV_DISABLE_PROMPT=1
+                source venv/bin/activate
+                _OLD_VIRTUAL_PS1="$PS1"
+                PS1="($_VENV_NAME)$PS1"
+                export PS1
+            fi
+        fi
+    }
+    export PROMPT_COMMAND=_virtualenv_auto_activate
+EOF
+
+echo "Generating private/public RSA key-pair to $HOME/.ssh/id_rsa(.pub)"
+ssh-keygen -f $HOME/.ssh/id_rsa -q -N ''
+cat $HOME/.ssh/id_rsa.pub
+
+echo "Creating basic directories for Django: logs uploads downloads"
+for f in logs uploads downloads; do
+    echo "mkdir $HOME/$f"
+    mkdir $HOME/$f
+done

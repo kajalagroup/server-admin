@@ -1,0 +1,32 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+export SOURCE=$1
+export TARGET=$2
+export DAYS=$3
+
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $THIS_SCRIPT <source files> <target directory> <number of days to recycle>"
+    exit 1
+fi
+
+export TODAY="`date +%Y-%m-%d`"
+mkdir -p "$TARGET/$TODAY"
+if [ ! -d "$TARGET/$TODAY" ]; then
+    echo "$TARGET/$TODAY is not directory"
+    exit 1
+fi
+
+date --date="-${DAYS} days" +%Y-%m-%d
+export OLD="`date --date=\"-${DAYS} days\" +%Y-%m-%d`"
+if [ -d "$TARGET/$OLD" ]; then
+    echo "Deleting old backup"
+    if [ "$?" != "0" ]; then
+        echo "Invalid <number of days to recycle>"
+        exit 1
+    fi
+    rm -rf "$TARGET/$OLD"
+fi
+
+echo "Copying $SOURCE to $TARGET/$TODAY"
+cp $SOURCE "$TARGET/$TODAY"

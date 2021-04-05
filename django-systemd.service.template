@@ -1,0 +1,20 @@
+#
+# Template parameters:
+# __DJANGO_USER__
+#
+
+[Unit]
+Description=__DJANGO_USER__
+After=syslog.target
+
+[Service]
+ExecStart=/usr/bin/uwsgi --ini /home/__DJANGO_USER__/uwsgi.ini --logto /home/__DJANGO_USER__/logs/uwsgi.log
+RuntimeDirectory=uwsgi
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

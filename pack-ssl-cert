@@ -1,0 +1,48 @@
+#!/bin/bash
+
+export THIS_SCRIPT=$(basename "$0")
+export THIS_SCRIPT_FULL_PATH="`realpath $0`"
+export SCRIPT_DIR="`dirname $THIS_SCRIPT_FULL_PATH`"
+
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $THIS_SCRIPT <domain> <filename.tar.gz>"
+    echo "$THIS_SCRIPT # of arguments was $#"
+    exit 1
+fi
+if [ "$USER" != "root" ]; then
+    echo "ERROR: This script must be executed as root"
+    exit 1
+fi
+
+export DOMAIN="$1"
+export TAR_FILE="`realpath $2`"
+
+cd /etc/letsencrypt/live/$DOMAIN
+if [ "$?" != "0" ]; then
+    echo "ERROR: Domain $DOMAIN Let's Encrypt SSL does not exist"
+    exit 1
+fi
+
+export CERT_DIR="/root/certs/$DOMAIN"
+mkdir -p "$CERT_DIR"
+for F in *.pem; do
+    export LINKTARGET="`readlink $F`"
+    export PEMFILE="`realpath $LINKTARGET`"
+    echo "Copying $PEMFILE to $CERT_DIR"
+    cp "$PEMFILE" "$CERT_DIR"
+    if [ "$?" != "0" ]; then
+        echo "ERROR: cp \"$PEMFILE\" \"$CERT_DIR\" failed"
+        exit 1
+    fi
+done
+
+cd "$CERT_DIR"
+tar -czvf "$TAR_FILE" *.pem
+if [ "$?" != "0" ]; then
+    echo "ERROR: cd \"$CERT_DIR\"; tar -czvf \"$TAR_FILE\" *.pem failed"
+    exit 1
+fi
+echo "$TAR_FILE written"
+
+rm -rf "$CERT_DIR"
+exit 0
