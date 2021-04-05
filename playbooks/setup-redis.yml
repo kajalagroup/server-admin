@@ -16,7 +16,3 @@
   - name: restart redis
     ansible.builtin.service:
       name: redis-server
-
-# ufw baseline for db server
-- name: ufw baseline
-  import_playbook: setup-ufw-db.yml

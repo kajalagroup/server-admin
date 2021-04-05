@@ -10,7 +10,3 @@
     ansible.builtin.apt:
       name: "postgresql-{{ pg_major_ver }}-postgis-{{ postgis_major_ver }}, postgresql-contrib postgresql-client-common postgis binutils libproj-dev gdal-bin"
     when: postgis_major_ver is defined
-
-# ufw baseline for db server
-- name: ufw baseline
-  import_playbook: setup-ufw-db.yml
