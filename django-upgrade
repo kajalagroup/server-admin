@@ -18,7 +18,10 @@ if [[ $OUTPUT_HELP == *"wait_tasks"* ]]; then
 fi
 
 # https://stackoverflow.com/questions/1593051/how-to-programmatically-determine-the-current-checked-out-git-branch
-CURRENT_GIT_BRANCH=$(git branch | grep '^*' | sed 's/* //' )
+# CURRENT_GIT_BRANCH=$(git branch | grep '^*' | sed 's/* //' )
+# simpler:
+CURRENT_GIT_BRANCH="`git branch --show-current`"
+
 echo "Current branch is $CURRENT_GIT_BRANCH"
 git pull origin $CURRENT_GIT_BRANCH
 git pull origin $CURRENT_GIT_BRANCH --tags

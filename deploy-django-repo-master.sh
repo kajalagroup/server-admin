@@ -69,7 +69,7 @@ if [ "$?" != "0" ]; then
     exit 1
 fi
 
-$SCRIPT_DIR/run-script.sh "$TARGET_USER" "$TARGET_HOST" "$DJANGO_USER" "$SCRIPT_DIR/deploy-django-repo-master-update.sh.remote"
+$SCRIPT_DIR/run-script.sh "$TARGET_USER" "$TARGET_HOST" "$DJANGO_USER" "$SCRIPT_DIR/django-upgrade"
 if [ "$?" != "0" ]; then
     echo "Error, exiting after writing $ABORT_FILE file"
     touch "$ABORT_FILE"
