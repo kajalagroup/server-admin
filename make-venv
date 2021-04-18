@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# parse opts
 OPT_FORCE=''
 OPT_DEV=''
 while test $# -gt 0; do
@@ -12,11 +13,17 @@ while test $# -gt 0; do
     shift
 done
 
+# resolve path to requirements
 export DJANGO_DIR="`realpath .`"
+if [ "$?" != "0" ]; then
+    echo "realpath command failed. On macOS? https://brew.sh/ and: brew install coreutils"
+    exit 1
+fi
 if [ -f "./django/requirements.txt" ]; then
     export DJANGO_DIR="`realpath ./django`"
 fi
 
+# create and activate venv
 echo "Creating Python virtual environment to $PWD/venv using $DJANGO_DIR/requirements.txt"
 if [ "$OPT_FORCE" == "" ] && [ -f "./venv/bin/python" ]; then
     echo "venv exists already"
@@ -25,7 +32,9 @@ else
     python3 -m venv venv
 fi
 source venv/bin/activate
-pip install --upgrade pip wheel twine setuptools
+
+# install basics
+pip install --upgrade pip wheel twine setuptools pip
 pip install -r "$DJANGO_DIR/requirements.txt" --no-cache-dir
 export RV="$?"
 if [ "$OPT_DEV" != "" ] && [ -f "$DJANGO_DIR/requirements-dev.txt" ]; then
