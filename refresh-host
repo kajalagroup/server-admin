@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: ssh-refresh-host <hostname>"
+    exit 1
+fi
+
+ssh-keygen -R "$1"
+ssh-keyscan -H "$1" >> ~/.ssh/known_hosts
