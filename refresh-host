@@ -6,5 +6,6 @@ if [ -z "$1" ]; then
 fi
 
 IP="`getent hosts $1 | awk '{ print $1 }'`"
+ssh-keygen -R "$1"
 ssh-keygen -R "$IP"
 ssh-keyscan -H "$IP" >> ~/.ssh/known_hosts
