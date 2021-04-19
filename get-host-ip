@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: get-host-ip <hostname>"
+    exit 1
+fi
+
+getent hosts $1 | awk '{ print $1 }'
