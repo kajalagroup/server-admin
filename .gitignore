@@ -3,4 +3,4 @@ local.*
 certs
 *.gz
 /files
-
+*.local.yml
