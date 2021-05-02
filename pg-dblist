@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for f in `psql -l | tail -n+4 | head -n-3 | awk '{print $1;}'`
+for f in `psql -l | tail -n+4 | head -n-2 | awk '{print $1;}'`
 do
     if [ "$f" != "|" ];
     then
