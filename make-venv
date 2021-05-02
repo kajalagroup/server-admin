@@ -46,4 +46,13 @@ echo "export VENV_DIR=`realpath ./venv/bin`" >> venv/bin/activate
 echo "export BASE_DIR=`realpath .`"
 echo "export DJANGO_DIR=$DJANGO_DIR"
 echo "export VENV_DIR=`realpath ./venv/bin`"
+
+# create uploads, downloads, logs -dirs if not exist
+for D in uploads downloads logs; do
+    if [ ! -d "$D" ]; then
+        mkdir "$D"
+    fi
+done
+
+# exiting with pip install -r requirements.txt return value
 exit $RV
