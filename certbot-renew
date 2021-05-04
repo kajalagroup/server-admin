@@ -9,7 +9,7 @@ if [ "$NGINX_STATUS" == "0" ]; then
     systemctl stop nginx
 fi
 
-certbot renew --non-interactive
+/usr/bin/certbot renew --non-interactive
 
 if [ "$NGINX_STATUS" == "0" ]; then
     systemctl start nginx
