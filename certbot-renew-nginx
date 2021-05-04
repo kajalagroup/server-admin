@@ -1,6 +1,16 @@
 #!/bin/bash
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
-sudo systemctl stop nginx
-sudo certbot renew -q
-sudo systemctl start nginx
+
+systemctl status nginx
+NGINX_STATUS="$?"
+
+if [ "$NGINX_STATUS" == "0" ]; then
+    systemctl stop nginx
+fi
+
+certbot renew --non-interactive
+
+if [ "$NGINX_STATUS" == "0" ]; then
+    systemctl start nginx
+fi
