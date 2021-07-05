@@ -9,6 +9,15 @@ cd django
 # Get output of django help command to check "wait_tasks" is supported in command list 
 OUTPUT_HELP=$(python manage.py help 2>&1)
 
+if [[ $OUTPUT_HELP == *"pre_build"* ]]; then
+    python manage.py pre_build
+    if [ "$?" != "0" ]; then
+        echo "Pre build fail, exit now"
+        exit 1
+    fi
+fi
+
+
 if [[ $OUTPUT_HELP == *"wait_tasks"* ]]; then
     python manage.py wait_tasks --wait 60
     if [ "$?" != "0" ]; then
