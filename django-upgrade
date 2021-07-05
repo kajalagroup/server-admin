@@ -10,10 +10,11 @@ cd django
 OUTPUT_HELP=$(python manage.py help 2>&1)
 
 if [[ $OUTPUT_HELP == *"wait_tasks"* ]]; then
-    python manage.py wait_tasks --wait 300
+    python manage.py wait_tasks --wait 60
     if [ "$?" != "0" ]; then
-        echo "There are background tasks still running after 5 minutes"
-        exit 1
+        echo "There are background tasks still running after 1 minute"
+        echo "Note: deploy still process"
+        # exit 1
     fi
 fi
 
