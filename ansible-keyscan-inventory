@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: ansible-keyscan-inventory <inventory-file>"
+    exit 1
+fi
+
+echo "SSH key scanning inventory $1"
+ansible all -i "$1" -a true --ssh-extra-args='-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new'
