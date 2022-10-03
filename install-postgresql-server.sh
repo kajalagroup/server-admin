@@ -33,7 +33,7 @@ echo "Installing PostgreSQL server"
 $SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST "sudo apt install -y postgresql"
 
 echo "Installing PostGIS - Spatial and Geographic Objects for PostgreSQL"
-export POSTGIS_PACKAGE_NAME="postgresql-12-postgis-3"
+export POSTGIS_PACKAGE_NAME="postgresql-14-postgis-3"
 $SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST "sudo apt -y install $POSTGIS_PACKAGE_NAME postgresql-contrib postgresql-client-common postgis binutils libproj-dev gdal-bin"
 
 echo "Starting PostgreSQL server"
