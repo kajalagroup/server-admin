@@ -8,5 +8,5 @@
         dest: ~/.ssh/known_hosts
         create: yes
         state: present
-        line: "{{ lookup('pipe', 'ssh-keyscan' + inventory_hostname) }}"
+        line: "{{ lookup('pipe', 'ssh-keyscan ' + inventory_hostname) }}"
 
