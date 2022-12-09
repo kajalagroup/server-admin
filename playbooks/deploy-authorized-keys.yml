@@ -1,0 +1,20 @@
+
+#
+# Usage:
+# ansible-playbook deploy-authorized-keys.yml --extra-vars='pubkey="ssh-rsa xxx jani@home"'
+#
+
+- hosts: all
+  tasks:
+  - name: ensure directory
+    file:
+      path: "/home/{{ lookup('env', 'USER') }}/.ssh"
+      state: directory
+  - name: ensure .ssh/authorized_keys file
+    file:
+      path: "/home/{{ lookup('env', 'USER') }}/.ssh/authorized_keys"
+      state: touch
+  - name: ensure pubkey line exists
+    lineinfile:
+      path: "/home/{{ lookup('env', 'USER') }}/.ssh/authorized_keys"
+      line: "{{ pubkey }}"
