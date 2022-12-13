@@ -3,7 +3,8 @@
 # This script pulls master at $HOME/django, installs reqs, migrates, collects static and calls manage post_build
 
 cd $HOME
-source venv/bin/activate
+source ./venv/bin/activate
+pip install pip --upgrade
 cd django
 
 # Get output of django help command to check "wait_tasks" is supported in command list 
