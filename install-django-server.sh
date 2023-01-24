@@ -40,10 +40,8 @@ $SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST "sudo apt install -y uwsgi-plug
 $SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST "sudo apt -y install libreadline6-dev libssl-dev libgdbm-dev libc6-dev libsqlite3-dev tk-dev liblzma-dev libdb-dev python3-venv libpq-dev libmemcached-dev postgresql-client"
 $SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST "sudo snap install pdftk"
 
-echo "Next: Install wkhtmltopdf 0.12.5.1 (apt install wkhtmltopdf installs 0.12.4 on Ubuntu 18.04)"
-ssh $TARGET 'sudo apt remove wkhtmltopdf'
-$SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST 'cd /tmp; wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb'
-$SCRIPT_DIR/run-cmd.sh $TARGET_USER $TARGET_HOST 'sudo gdebi --non-interactive /tmp/wkhtmltox_0.12.5-1.bionic_amd64.deb'
+echo "Next: Install wkhtmltopdf"
+ssh $TARGET 'sudo apt install wkhtmltopdf'
 
 echo "Finishing $THIS_SCRIPT, checking for errors"
 if [ -f "$ABORT_FILE" ]; then
