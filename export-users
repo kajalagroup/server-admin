@@ -41,9 +41,13 @@ tar -zcvpf /root/move/systemd.tar.gz /etc/systemd/system
 echo "Archiving /etc/letsencrypt"
 tar -zcvpf /root/move/letsencrypt.tar.gz /etc/letsencrypt
 
-echo "Archiving /etc/nginx/sites-available"
+echo "Archiving /etc/nginx/sites-available and sites-enabled"
 tar -zcvpf /root/move/nginx_sites_available.tar.gz /etc/nginx/sites-available
 tar -zcvpf /root/move/nginx_sites_enabled.tar.gz /etc/nginx/sites-enabled
+
+echo "Archiving /etc/apache2/sites-available and sites-enabled"
+tar -zcvpf /root/move/apache2_sites_available.tar.gz /etc/apache2/sites-available
+tar -zcvpf /root/move/apache2_sites_enabled.tar.gz /etc/apache2/sites-enabled
 
 echo "Transferring /root/move to $TARGET_HOST"
 rsync -aP /root/move "${TARGET_HOST}:."

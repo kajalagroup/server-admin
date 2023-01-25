@@ -47,6 +47,16 @@ if [ -f "/root/move/nginx_sites_enabled.tar.gz" ]; then
     cd / && tar -zxvf /root/move/nginx_sites_enabled.tar.gz
 fi 
 
+if [ -f "/root/move/apache2_sites_available.tar.gz" ]; then
+    echo "Importing /etc/apache2/sites-available"
+    cd / && tar -zxvf /root/move/apache2_sites_available.tar.gz
+fi 
+
+if [ -f "/root/move/apache2_sites_enabled.tar.gz" ]; then
+    echo "Importing /etc/apache2/sites-enabled"
+    cd / && tar -zxvf /root/move/apache2_sites_enabled.tar.gz
+fi 
+
 for U in `ls -1 /home`; do
     if [ -f "/home/$U/make-venv" ]; then
       echo "TO-DO: runuser -u $U -- /home/$U/make-venv"
