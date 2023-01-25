@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: ./export-users.sh TARGET_HOST"
+    exit 1
+fi
+
+export TARGET_HOST="$1"
+ssh -t "$TARGET_HOST" 'exit'
+if [ "$?" != "0" ]; then
+    echo "ssh connection to $TARGET_HOST failed"
+    exit 1
+fi
+
+mkdir /root/move
+if [ "$?" != "0" ]; then
+    echo "not root or /root/move exists?"
+    exit 1
+fi
+
+cd /root/move
+export UGIDLIMIT=1000
+
+echo "Exporting users to /home/move/"
+awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/passwd > /root/move/passwd.mig
+awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/group > /root/move/group.mig
+awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534) {print $1}' /etc/passwd | tee - | egrep -f - /etc/shadow > /root/move/shadow.mig
+
+echo "Archiving /home to /root/move/home.tar.gz"
+tar -zcvpf /root/move/home.tar.gz /home
+
+echo "Archiving /etc/systemd/system"
+tar -zcvpf /root/move/systemd.tar.gz /etc/systemd/system
+
+echo "Archiving /etc/letsencrypt"
+tar -zcvpf /root/move/letsencrypt.tar.gz /etc/letsencrypt
+
+echo "Archiving /etc/nginx/sites-available"
+tar -zcvpf /root/move/nginx_sites_available.tar.gz /etc/nginx/sites-available
+tar -zcvpf /root/move/nginx_sites_enabled.tar.gz /etc/nginx/sites-enabled
+
+echo "Transferring /root/move to $TARGET_HOST"
+rsync -aP /root/move "${TARGET_HOST}:."
+
+echo "Done, next ./import-users on $TARGET_HOST"
