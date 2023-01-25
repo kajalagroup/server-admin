@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [ ! -d "/root/move" ]; then
+    echo "/root/move does not exist"
+    exit 1
+fi
+
+echo "Backing up old users"
+mkdir /root/newsusers.bak
+if [ "$?" != "0" ]; then
+    echo "not root or /root/newusers.bak exists?"
+    exit 1
+fi
+cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /root/newsusers.bak
+
+echo "Importing new users"
+cd /root/move
+cat passwd.mig >> /etc/passwd
+cat group.mig >> /etc/group
+cat shadow.mig >> /etc/shadow
+
+echo "Importing /home"
+cd / && tar -zxvf /root/move/home.tar.gz
+
+echo "Importing systemd services specific to users"
+cd /root/move/etc/systemd/system
+for U in `ls -1 /home`; do
+    if [ -f "$U.service" ]; then
+        echo "Restoring systemd services of user $U"
+        cp "$U.service" "/etc/systemd/system/"
+        systemctl enable "$U"
+    fi
+done
+
+if [ -f "/root/move/letsencrypt.tar.gz" ]; then
+    echo "Importing letsencrypt"
+    cd / && tar -zxvf /root/move/letsencrypt.tar.gz
+fi 
+
+if [ -f "/root/move/nginx_sites_available.tar.gz" ]; then
+    echo "Importing /etc/nginx/sites-available"
+    cd / && tar -zxvf /root/move/nginx_sites_available.tar.gz
+fi 
+
+if [ -f "/root/move/nginx_sites_enabled.tar.gz" ]; then
+    echo "Importing /etc/nginx/sites-enabled"
+    cd / && tar -zxvf /root/move/nginx_sites_enabled.tar.gz
+fi 
+
+echo "Done. Next: reboot now"
