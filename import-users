@@ -47,4 +47,16 @@ if [ -f "/root/move/nginx_sites_enabled.tar.gz" ]; then
     cd / && tar -zxvf /root/move/nginx_sites_enabled.tar.gz
 fi 
 
+for U in `ls -1 /home`; do
+    if [ -f "/home/$U/make-venv" ]; then
+      echo "TO-DO: runuser -u $U -- /home/$U/make-venv"
+    fi
+    if [ -f "/home/$U/make-venv.sh" ]; then
+      echo "TO-DO: runuser -u $U -- /home/$U/make-venv.sh"
+    fi
+    if [ -f "/home/$U/crontab.bak" ]; then
+      echo "TO-DO: runuser -u $U -- crontab /home/$U/crontab.bak"
+    fi
+done
+
 echo "Done. Next: reboot now"

@@ -26,6 +26,12 @@ awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/passwd > /root/mov
 awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/group > /root/move/group.mig
 awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534) {print $1}' /etc/passwd | tee - | egrep -f - /etc/shadow > /root/move/shadow.mig
 
+echo "Exporting crontabs"
+for U in `ls -1 /home`; do
+    echo "Exporting crontab for user $U"
+    runuser -u "$U" -- crontab -l > "/home/$U/crontab.bak"
+done
+
 echo "Archiving /home to /root/move/home.tar.gz"
 tar -zcvpf /root/move/home.tar.gz /home
 
