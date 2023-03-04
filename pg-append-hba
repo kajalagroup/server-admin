@@ -17,10 +17,26 @@ fi
 
 export PG_HBA_FILE_BACKUP="${PG_HBA_FILE}.bak"
 sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP
+if [ "$?" != "0" ]; then
+    echo "sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP failed"
+    exit 1
+fi
 echo "$PG_HBA_FILE copied to ${PG_HBA_FILE}.bak"
-sudo cat $PG_HBA_FILE | sed "s|$APPEND_STR||" > /tmp/pg_hba.conf
+cat $PG_HBA_FILE | sed "s|$APPEND_STR||" > /tmp/pg_hba.conf
+if [ "$?" != "0" ]; then
+    echo "cat $PG_HBA_FILE | sed \"s|$APPEND_STR||\" > /tmp/pg_hba.conf failed"
+    exit 1
+fi
 sudo echo "$APPEND_STR" >> /tmp/pg_hba.conf
+if [ "$?" != "0" ]; then
+    echo "sudo echo \"$APPEND_STR\" >> /tmp/pg_hba.conf failed"
+    exit 1
+fi
 sudo mv -f /tmp/pg_hba.conf $PG_HBA_FILE
+if [ "$?" != "0" ]; then
+    echo "sudo mv -f /tmp/pg_hba.conf $PG_HBA_FILE failed"
+    exit 1
+fi
 echo "$PG_HBA_FILE modified to include \"$APPEND_STR\""
 
 echo "Reloading PostgreSQL"

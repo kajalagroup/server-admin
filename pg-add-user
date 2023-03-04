@@ -1,44 +1,50 @@
-#!/bin/bash
-
 export THIS_SCRIPT=$(basename "$0")
 export THIS_PATH=$(dirname `realpath "$0"`)
-export PG_HBA_FILE="/etc/postgresql/`$THIS_PATH/pg-major-ver`/main/pg_hba.conf"
+export APPEND_STR="$1"
 
+if [ -z "$1" ]; then
+    echo "Usage: $THIS_SCRIPT <string to append>"
+    exit 1
+fi
+
+export PG_HBA_FILE="/etc/postgresql/`$THIS_PATH/pg-major-ver`/main/pg_hba.conf"
 if [ ! -f "$PG_HBA_FILE" ]; then
     echo "$PG_HBA_FILE does not exist. Different PostgreSQL version installed?"
     exit 1
 fi
 
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $THIS_SCRIPT <username> <password> <client IP>"
+export PG_HBA_FILE_BACKUP="${PG_HBA_FILE}.bak"
+sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP
+if [ "$?" != "0" ]; then
+    echo "sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP failed"
+    exit 1
+fi
+echo "$PG_HBA_FILE copied to ${PG_HBA_FILE}.bak"
+cat $PG_HBA_FILE | sed "s|$APPEND_STR||" > /tmp/pg_hba.conf
+if [ "$?" != "0" ]; then
+    echo "cat $PG_HBA_FILE | sed \"s|$APPEND_STR||\" > /tmp/pg_hba.conf failed"
+    exit 1
+fi
+sudo echo "$APPEND_STR" >> /tmp/pg_hba.conf
+if [ "$?" != "0" ]; then
+    echo "sudo echo \"$APPEND_STR\" >> /tmp/pg_hba.conf failed"
+    exit 1
+fi
+sudo mv -f /tmp/pg_hba.conf $PG_HBA_FILE
+if [ "$?" != "0" ]; then
+    echo "sudo mv -f /tmp/pg_hba.conf $PG_HBA_FILE failed"
+    exit 1
+fi
+echo "$PG_HBA_FILE modified to include \"$APPEND_STR\""
+
+echo "Reloading PostgreSQL"
+sudo systemctl reload postgresql.service
+if [ "$?" != "0" ]; then
+    echo "Failed to reload postgresql.service, reverting to old configuration $PG_HBA_FILE_BACKUP and exiting with 1"
+    sudo cp -f $PG_HBA_FILE_BACKUP $PG_HBA_FILE
+    sudo systemctl reload postgresql.service
     exit 1
 fi
 
-export DB_USER="$1"
-export DB_PASS="$2"
-export DB_CLIENT_IP="$3"
-
-psql -c "CREATE USER $DB_USER"
-if [ "$?" != "0" ]; then
-    echo "CREATE USER $DB_USER failed, exiting with 1"
-    exit 1
-fi
-psql -c "CREATE DATABASE $DB_USER OWNER $DB_USER"
-if [ "$?" != "0" ]; then
-    echo "CREATE DATABASE $DB_USER OWNER $DB_USER failed, exiting with 1"
-    exit 1
-fi
-psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_USER TO $DB_USER"
-if [ "$?" != "0" ]; then
-    echo "GRANT ALL PRIVILEGES ON DATABASE $DB_USER TO $DB_USER failed, exiting with 1"
-    exit 1
-fi
-psql -c "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS'"
-if [ "$?" != "0" ]; then
-    echo "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS' failed, exiting with 1"
-    exit 1
-fi
-
-echo "Appending host $DB_USER $DB_USER $DB_CLIENT_IP/32 md5 to pg_hba file $PG_HBA_FILE"
-./pg-append-hba "host $DB_USER $DB_USER $DB_CLIENT_IP/32 md5"
-exit $?
+echo "Done!"
+exit 0
