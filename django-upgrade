@@ -58,6 +58,8 @@ if [ "$?" != "0" ]; then
     exit 1
 fi
 
+python manage.py clear_cache
+
 # optional project specific signal that new build has been done
 python manage.py | grep post_build
 if [ "$?" == "0" ]; then
