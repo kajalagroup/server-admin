@@ -2,7 +2,7 @@
 
 if [ -z "$MARIADB_HOST" ]; then
     echo "MARIADB_HOST not set, using default:"
-    export MARIADB_HOST="127.0.0.0"
+    export MARIADB_HOST="127.0.0.1"
     echo "export MARIADB_HOST=$MARIADB_HOST"
 fi
 if [ -z "MARIADB_ROOT_USER" ]; then
