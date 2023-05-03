@@ -1,11 +1,19 @@
 #!/bin/bash
 
-if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PASSWORD" ]; then
-    echo "MARIADB_HOST/MARIADB_ROOT_USER/MARIADB_ROOT_PASSWORD not set:"
-    echo "export MARIADB_HOST="
-    echo "export MARIADB_ROOT_USER=root"
-    echo "export MARIADB_ROOT_PASSWORD=dev"
-    exit 1
+if [ -z "$MARIADB_HOST" ]; then
+    echo "MARIADB_HOST not set, using default:"
+    export MARIADB_HOST="127.0.0.0"
+    echo "export MARIADB_HOST=$MARIADB_HOST"
+fi
+if [ -z "MARIADB_ROOT_USER" ]; then
+    echo "MARIADB_ROOT_USER not set, using default:"
+    export MARIADB_ROOT_USER="root"
+    echo "export MARIADB_ROOT_USER=$MARIADB_ROOT_USER"
+fi
+if [ -z "MARIADB_ROOT_PASSWORD" ]; then
+    echo "MARIADB_ROOT_PASSWORD not set, using default:"
+    export MARIADB_ROOT_PASSWORD="dev"
+    echo "export MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD"
 fi
 
 mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" $*
