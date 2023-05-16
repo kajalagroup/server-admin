@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Adds/refreshes host to known_hosts"
+    echo "Usage: keyscan-host <hostname>"
+    exit 1
+fi
+
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R "$1"
+ssh-keyscan "$1" >> "$HOME/.ssh/known_hosts"
