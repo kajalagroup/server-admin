@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: <username>"
+    exit 1
+fi
+
+getent group sftponly
+if [ "$?" != "0" ]; then
+    echo "sftponly group does not exist"
+    exit 1
+fi
+
+export u="$1"
+
+sudo useradd -g sftponly -s /bin/false -m -d /home/$u $u
+sudo chown root: /home/$u
+sudo chmod 755 /home/$u
+
+for d in uploads downloads; do
+    sudo mkdir /home/$u/$d
+    sudo chmod 755 /home/$u/$d
+    sudo chown $u:sftponly /home/$u/$d
+done
+
