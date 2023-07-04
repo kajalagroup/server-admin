@@ -4,7 +4,7 @@ After=syslog.target
 
 [Service]
 Type=simple
-ExecStart=/home/{{ django_user }}/venv/bin/python /home/{{ django_user }}/django/manage.py run_huey -l /home/{{ django_user }}/logs/huey.log
+ExecStart=/home/{{ django_user }}/venv/bin/python /home/{{ django_user }}/django/manage.py run_huey -f -l /home/{{ django_user }}/logs/huey.log
 User={{ django_user }}
 RuntimeDirectory=/home/{{ django_user }}
 Restart=always
