@@ -61,8 +61,7 @@ fi
 python manage.py clear_cache
 
 # optional project specific signal that new build has been done
-python manage.py | grep post_build
-if [ "$?" == "0" ]; then
+if [[ $OUTPUT_HELP == *"post_build"* ]]; then
     echo "Django management command post_build found, executing..."
     python manage.py post_build
 fi
