@@ -15,13 +15,13 @@ if [ ! -f "$PG_HBA_FILE" ]; then
     exit 1
 fi
 
-export PG_HBA_FILE_BACKUP="${PG_HBA_FILE}.bak"
+export PG_HBA_FILE_BACKUP="${PG_HBA_FILE}-`date -I`.bak"
 sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP
 if [ "$?" != "0" ]; then
     echo "sudo cp -f $PG_HBA_FILE $PG_HBA_FILE_BACKUP failed"
     exit 1
 fi
-echo "$PG_HBA_FILE copied to ${PG_HBA_FILE}.bak"
+echo "$PG_HBA_FILE copied to ${PG_HBA_FILE_BACKUP}"
 cat $PG_HBA_FILE | sed "s|$APPEND_STR||" > /tmp/pg_hba.conf
 if [ "$?" != "0" ]; then
     echo "cat $PG_HBA_FILE | sed \"s|$APPEND_STR||\" > /tmp/pg_hba.conf failed"
