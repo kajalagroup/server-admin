@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ] || [ ! -f "$2" ]; then
+    echo "Removes specific line number from a file (modifies file)"
+    echo "Usage: cutline <line number> <filename>"
+    exit 1
+fi
+
+sed -i "${1}d" "${2}"
