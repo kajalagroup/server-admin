@@ -22,6 +22,6 @@ if [ "$?" != "0" ]; then
     echo "gunzip -c $FILENAME | psql $DBNAME failed, exiting with 1"
     exit 1
 fi
-psql -c "ALTER TABLE $DBNAME OWNER TO $OWNER" $DBNAME
+$THIS_PATH/pg-set-owner "$DBNAME" "OWNER"
 
 exit $?
