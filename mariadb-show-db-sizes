@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PASSWORD" ]; then
+    mariadb -e 'SELECT table_schema "DB Name", ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "DB Size in MB" FROM information_schema.tables GROUP BY table_schema;'
+else
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e 'SELECT table_schema "DB Name", ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "DB Size in MB" FROM information_schema.tables GROUP BY table_schema;'
+fi
