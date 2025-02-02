@@ -1,19 +1,9 @@
 #!/bin/bash
 
-if [ -z "$MARIADB_HOST" ]; then
-    echo "MARIADB_HOST not set, using default:"
-    export MARIADB_HOST="127.0.0.0"
-    echo "export MARIADB_HOST=$MARIADB_HOST"
-fi
-if [ -z "MARIADB_ROOT_USER" ]; then
-    echo "MARIADB_ROOT_USER not set, using default:"
-    export MARIADB_ROOT_USER="root"
-    echo "export MARIADB_ROOT_USER=$MARIADB_ROOT_USER"
-fi
-if [ -z "MARIADB_ROOT_PASSWORD" ]; then
-    echo "MARIADB_ROOT_PASSWORD not set, using default:"
-    export MARIADB_ROOT_PASSWORD="dev"
-    echo "export MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD"
+USE_SOCKET=0
+if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PASSWORD" ]; then
+    echo "MARIADB_HOST, MARIADB_ROOT_USER and MARIADB_ROOT_PASSWORD not set, using socket connection"
+    USE_SOCKET=1
 fi
 
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -29,21 +19,39 @@ dbhost="$MARIADB_HOST"
 
 # Drop old DB if exists
 echo "Dropping old DB $dbname if exists"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP DATABASE IF EXISTS $dbname;"
+if [ "$USE_SOCKET" == "1" ]; then
+    mariadb -e "SET @@SQL_MODE = ''; DROP DATABASE IF EXISTS $dbname;"
+else
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP DATABASE IF EXISTS $dbname;"
+fi
 
 # Drop old user if exists
 echo "Dropping old user $dbuser if exists"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP USER IF EXISTS '$dbname'@'$dbhost';"
+if [ "$USE_SOCKET" == "1" ]; then
+    mariadb -e "SET @@SQL_MODE = ''; DROP USER IF EXISTS '$dbname'@'$dbhost';"
+else
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; DROP USER IF EXISTS '$dbname'@'$dbhost';"
+fi
 
 # Create new DB
 echo "Creating new DB $dbname"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE DATABASE $dbname DEFAULT CHARACTER SET utf8;"
+if [ "$USE_SOCKET" == "1" ]; then
+    mariadb -e "SET @@SQL_MODE = ''; CREATE DATABASE $dbname DEFAULT CHARACTER SET utf8;"
+else
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE DATABASE $dbname DEFAULT CHARACTER SET utf8;"
+fi
 
 # Create new user
 echo "Creating new user $dbuser with password '$dbpass'"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE USER '$dbuser'@'%' IDENTIFIED BY '$dbpass';"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT USAGE ON *.* TO '$dbuser'@'%';"
-mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%';"
+if [ "$USE_SOCKET" == "1" ]; then
+    mariadb -e "SET @@SQL_MODE = ''; CREATE USER '$dbuser'@'%' IDENTIFIED BY '$dbpass';"
+    mariadb -e "SET @@SQL_MODE = ''; GRANT USAGE ON *.* TO '$dbuser'@'%';"
+    mariadb -e "SET @@SQL_MODE = ''; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%';"
+else
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; CREATE USER '$dbuser'@'%' IDENTIFIED BY '$dbpass';"
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT USAGE ON *.* TO '$dbuser'@'%';"
+    mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" -e "SET @@SQL_MODE = ''; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%';"
+fi
 
 # Preprocess: Skip foreign key checks for import and import with most relaxed SQL-mode
 echo "Preprocessing: Skip foreign key checks for import and import with most relaxed SQL-mode"
@@ -54,7 +62,11 @@ echo "SET foreign_key_checks = 1;" >> $tmpfile1
 
 # Import pre-processed file
 echo "Importing pre-processed file $tmpfile1"
-cat $tmpfile1 | mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" "$dbname"
+if [ "$USE_SOCKET" == "1" ]; then
+    cat $tmpfile1 | mariadb "$dbname"
+else
+    cat $tmpfile1 | mariadb --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" "$dbname"
+fi
 RV="$?"
 
 rm $tmpfile1
