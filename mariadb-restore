@@ -7,7 +7,7 @@ if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PA
 fi
 
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Usage: <dbfile.sql.gz> <dbname>"
+    echo "Usage: <dbfile.sql.gz> <dbname> <optional: pass>"
     exit 1
 fi
 
@@ -15,6 +15,9 @@ dbfile="$1"
 dbname="$2"
 dbuser="$dbname"
 dbpass="`tr -cd '[:alnum:]' < /dev/urandom | fold -w16 | head -n1`"
+if [ ! -z "$3" ]; then
+    dbpass="$3"
+fi
 dbhost="$MARIADB_HOST"
 
 # Drop old DB if exists
