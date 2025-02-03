@@ -1,0 +1,34 @@
+#!/bin/bash
+
+USE_SOCKET=0
+if [ -z "$MARIADB_HOST" ] || [ -z "MARIADB_ROOT_USER" ] || [ -z "MARIADB_ROOT_PASSWORD" ]; then
+    echo "MARIADB_HOST, MARIADB_ROOT_USER and MARIADB_ROOT_PASSWORD not set, using socket connection"
+    USE_SOCKET=1
+fi
+
+if [ -z "$1" ]; then
+    echo "Usage: <username> <optional: password>"
+    exit 1
+fi
+U="$1"
+if [ "$2" != "" ]; then
+    if [ "$USE_SOCKET" == "1" ]; then
+        sudo mariadb -e "CREATE USER '$U'@'%' IDENTIFIED BY '$2';"
+    else
+        mariadb -e "CREATE USER '$U'@'%' IDENTIFIED BY '$2';" --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" 
+    fi
+    echo "Password set"
+else
+    sudo mariadb -e "CREATE USER '$U'@'%';"
+fi
+
+if [ "$USE_SOCKET" == "1" ]; then
+    sudo mariadb -e "GRANT ALL PRIVILEGES ON *.* TO '$U'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES"
+else
+    mariadb -e "GRANT ALL PRIVILEGES ON *.* TO '$U'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES" --host "$MARIADB_HOST" --user "$MARIADB_ROOT_USER" --password="$MARIADB_ROOT_PASSWORD" 
+fi
+
+if [ "$?" == "0" ]; then
+    echo "$U superuser created"
+fi
+
