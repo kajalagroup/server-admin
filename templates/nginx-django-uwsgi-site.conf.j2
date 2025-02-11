@@ -39,7 +39,7 @@ server {
     
     location / {
         include nginxconfig.io/python_uwsgi.conf;
-        uwsgi_pass unix:/home/factoring_prod/uwsgi.sock;
+        uwsgi_pass unix:/home/{{ django_user }}/uwsgi.sock;
     }
 
     # additional config
