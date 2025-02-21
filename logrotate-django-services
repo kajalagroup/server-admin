@@ -1,6 +1,9 @@
 /home/*/logs/*.log {
     monthly
     compress
-    rotate 24
+    delaycompress
+    missingok
+    nocreate
+    rotate 12
     su
 }
