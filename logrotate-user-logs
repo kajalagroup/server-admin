@@ -1,3 +1,5 @@
+# note: you can use logrotate -d logrotate-user-logs to see which log files are affected by the config file
+
 /home/*/logs/*.log {
     monthly
     compress
