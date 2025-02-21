@@ -5,5 +5,5 @@
     missingok
     nocreate
     rotate 12
-    su
+    su root root
 }
