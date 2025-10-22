@@ -1,0 +1,16 @@
+- name: Remove user if it exists
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure "deluser" variable is defined
+      assert:
+        that:
+          - deluser is defined
+        fail_msg: "The 'deluser' variable is required, please provide it using --extra-vars 'deluser=xxx' or inventory."
+    - name: Ensure the user is absent
+      ansible.builtin.user:
+        name: "{{ deluser }}"
+        state: absent
+        remove: true
+        force: true
