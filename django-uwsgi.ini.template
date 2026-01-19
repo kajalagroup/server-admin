@@ -21,4 +21,4 @@ plugins = python3
 uid = __DJANGO_USER__
 gid = __DJANGO_USER__
 vacuum  = true
-
+buffer-size = 8192
