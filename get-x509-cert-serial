@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "usage: get-x509-cert-serial <cert-file.pem>"
+    exit 1
+fi
+
+openssl x509 -in "$1" -noout -serial -subject -issuer
