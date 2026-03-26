@@ -1,0 +1,27 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: ufw allow ssh
+    community.general.ufw:
+      rule: allow
+      port: ssh
+  - name: ufw default deny
+    community.general.ufw:
+      default: deny
+      direction: incoming
+  - name: ufw enable
+    community.general.ufw:
+      state: enabled
+  - name: Setup basic software
+    apt:
+      name: ssh, build-essential, locate, aptitude, wget, curl, less, p7zip-full, software-properties-common, ssl-cert, at, upower, unzip, sshpass, whois, git-core, screen, gdebi-core, gettext, libxml2-utils, xmlsec1, libxmlsec1-dev, libjpeg-dev, libtiff-dev, libxml2-utils, htop, ncdu, ufw, language-pack-en, libbz2-dev, borgbackup, ntp, systemd-timesyncd
+      state: latest
+  - name: Install MariaDB
+    apt:
+      name: mariadb-server, python3-pymysql, mariadb-client
+      state: latest
+      update_cache: yes
+  - name: update and upgrade
+    ansible.builtin.apt:
+      update_cache: yes
+      upgrade: yes

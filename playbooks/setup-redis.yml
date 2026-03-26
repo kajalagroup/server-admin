@@ -1,4 +1,4 @@
-- hosts: db_servers
+- hosts: all
   become: yes
   tasks:
 
