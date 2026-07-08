@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "usage: mariadb-dump-row-counts <dbname>"
+    exit
+fi
+
+mariadb "$1" --batch -e "
+SELECT TABLE_NAME, TABLE_ROWS
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = '$1'
+ORDER BY TABLE_NAME;
+" > row_counts.csv
