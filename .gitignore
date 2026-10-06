@@ -1,6 +1,7 @@
 /.idea
 *.local
 local.*
+*.local.*
 certs
 *.gz
 /files
