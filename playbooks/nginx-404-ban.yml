@@ -1,0 +1,79 @@
+---
+# Ubuntu 22.04: ban IPs that generate more than 20 nginx 404 responses
+# within 60 seconds. Ban duration: 10 days.
+#
+# Usage:
+#   ansible-playbook -i inventory nginx_404_ban.yml
+#   ansible-playbook -i inventory nginx_404_ban.yml -e '{"ignore_ips": ["127.0.0.1/8", "::1", "203.0.113.10"]}'
+
+- name: Ban IPs that trigger too many nginx 404 responses
+  hosts: all
+  become: true
+
+  vars:
+    nginx_access_log: /var/log/nginx/access.log
+    findtime_seconds: 60          # time window: 1 minute
+    max_404_allowed: 20           # "more than 20" => ban on the 21st
+    bantime_seconds: 864000       # 10 days
+    ignore_ips:                   # never ban these (add your own IP / monitoring!)
+      - 127.0.0.1/8
+      - ::1
+      - 45.33.116.208/32
+      - 192.46.234.160/32
+      - 172.104.182.117/32
+
+  tasks:
+    - name: Install fail2ban
+      ansible.builtin.apt:
+        name: fail2ban
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create fail2ban filter for nginx 404 responses
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/filter.d/nginx-404.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Matches nginx "combined"/"main" log lines with a 404 status
+          [Definition]
+          failregex = ^<HOST> \S+ \S+ \[[^\]]+\] "[^"]*" 404 .*$
+          ignoreregex =
+      notify: Restart fail2ban
+
+    - name: Create fail2ban jail for nginx 404 flood
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.d/nginx-404.local
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [nginx-404]
+          enabled   = true
+          port      = http,https
+          filter    = nginx-404
+          logpath   = {{ nginx_access_log }}
+          backend   = auto
+          findtime  = {{ findtime_seconds }}
+          maxretry  = {{ max_404_allowed + 1 }}
+          bantime   = {{ bantime_seconds }}
+          ignoreip  = {{ ignore_ips | join(' ') }}
+      notify: Restart fail2ban
+
+    - name: Validate fail2ban configuration
+      ansible.builtin.command: fail2ban-client -t
+      changed_when: false
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
