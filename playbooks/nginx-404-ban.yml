@@ -7,7 +7,7 @@
 #   ansible-playbook -i inventory nginx_404_ban.yml -e '{"ignore_ips": ["127.0.0.1/8", "::1", "203.0.113.10"]}'
 
 - name: Ban IPs that trigger too many nginx 404 responses
-  hosts: all
+  hosts: webservers
   become: true
 
   vars:
@@ -37,10 +37,11 @@
         group: root
         mode: "0644"
         content: |
-          # Matches nginx "combined"/"main" log lines with a 404 status
+          # Matches nginx "combined"/"main" log lines with a 404 status,
+          # except requests for /favicon.ico (browsers request it automatically)
           [Definition]
           failregex = ^<HOST> \S+ \S+ \[[^\]]+\] "[^"]*" 404 .*$
-          ignoreregex =
+          ignoreregex = ^\S+ \S+ \S+ \[[^\]]+\] "[A-Z]+ /favicon\.ico(\?[^ "]*)? [^"]*" 404 .*$
       notify: Restart fail2ban
 
     - name: Create fail2ban jail for nginx 404 flood
@@ -77,3 +78,4 @@
       ansible.builtin.systemd:
         name: fail2ban
         state: restarted
+
