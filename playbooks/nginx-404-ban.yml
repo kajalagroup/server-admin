@@ -7,7 +7,7 @@
 #   ansible-playbook -i inventory nginx_404_ban.yml -e '{"ignore_ips": ["127.0.0.1/8", "::1", "203.0.113.10"]}'
 
 - name: Ban IPs that trigger too many nginx 404 responses
-  hosts: webservers
+  hosts: all
   become: true
 
   vars:
